@@ -9,7 +9,9 @@
  */
 package HW3;
 
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -18,45 +20,70 @@ import java.util.concurrent.Semaphore;
 public class Database implements ReadWriteLock {
 
     private int readerCount;
-    private Semaphore mutex;
-    private Semaphore db;
+    private boolean isWriting;
+    private Lock lock;
+    private Condition condVar;
 
     public Database() {
         readerCount = 0;
-        mutex = new Semaphore(1);
-        db = new Semaphore(1);
+        isWriting = false;
+        lock = new ReentrantLock();
+        condVar = lock.newCondition();
     }
 
     public void acquireReadLock() {
-        mutex.acquire();
-        /**
-         * The first reader indicates that the database is being read.
-         */
-        ++readerCount;
-        if (readerCount == 1) {
-            db.acquire();
+        lock.lock();
+
+        try {
+            //If writer is writing, wait until signaled
+            if (isWriting) {
+                condVar.await();
+            }
+            //Thread was signaled and Rriter not writing
+            //Reader can read, update readerCount
+            ++readerCount;
+        } catch (InterruptedException ie) {
+        } finally {
+            lock.unlock();
         }
-        mutex.release();
     }
 
     public void releaseReadLock() {
-        mutex.acquire();
-        /**
-         * The last reader indicates that the database is no longer being read.
-         */
+        lock.lock();
+        //Reader done, update readerCount
         --readerCount;
-        if (readerCount == 0) {
-            db.release();
-        }
-        mutex.release();
+
+        //Signal all waiting threads
+        condVar.signalAll();
+        lock.unlock();
     }
 
     public void acquireWriteLock() {
-        db.acquire();
+        lock.lock();
+
+        try {
+            //If readers are reasing, wait until signaled
+            if (readerCount != 0) {
+                condVar.await();
+            }
+            //Thread was signaled and no Readers reading 
+            //Writer can write, update isWriting
+            isWriting = true;
+        } catch (InterruptedException ie) {
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void releaseWriteLock() {
-        db.release();
+        lock.lock();
+
+        //Writer is done, update isWriting
+        isWriting = false;
+
+        //Signal all waiting threads
+        condVar.signalAll();
+        lock.unlock();
     }
 
 }

@@ -31,7 +31,7 @@ public class Reader implements Runnable {
             db.acquireReadLock();
 // now read from the database
             try {
-                System.out.println("Reading from the Databse");
+                System.out.println("Reading from the Database");
                 Thread.sleep(1000);                 //one second.
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();

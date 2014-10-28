@@ -31,7 +31,7 @@ public class Writer implements Runnable {
             db.acquireWriteLock();
 // now write to write to the database
             try {
-                System.out.println("Writing to the Databse");
+                System.out.println("Writing to the Database");
                 Thread.sleep(1000);                 //one second
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();

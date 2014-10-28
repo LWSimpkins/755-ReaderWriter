@@ -39,8 +39,8 @@ public class Database implements ReadWriteLock {
             if (isWriting) {
                 condVar.await();
             }
-            //Thread was signaled and Rriter not writing
-            //Reader can read, update readerCount
+            //Thread was signaled and no Writers are writing
+            //This thread can read, update readerCount
             ++readerCount;
         } catch (InterruptedException ie) {
         } finally {
@@ -50,24 +50,28 @@ public class Database implements ReadWriteLock {
 
     public void releaseReadLock() {
         lock.lock();
-        //Reader done, update readerCount
-        --readerCount;
-
-        //Signal all waiting threads
-        condVar.signalAll();
-        lock.unlock();
+        try {
+            //Reader done, update readerCount
+            --readerCount;
+            
+            //Signal all waiting threads
+            condVar.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void acquireWriteLock() {
         lock.lock();
 
         try {
-            //If readers are reasing, wait until signaled
-            if (readerCount != 0) {
+            //If readers are reading, or another Writer is writing
+            //Wait until signaled
+            if (readerCount > 0 || isWriting) {
                 condVar.await();
             }
-            //Thread was signaled and no Readers reading 
-            //Writer can write, update isWriting
+            //Thread was signaled and no Readers reading or Writiers writing
+            //This thread can write, update isWriting
             isWriting = true;
         } catch (InterruptedException ie) {
         } finally {
@@ -77,13 +81,15 @@ public class Database implements ReadWriteLock {
 
     public void releaseWriteLock() {
         lock.lock();
-
-        //Writer is done, update isWriting
-        isWriting = false;
-
-        //Signal all waiting threads
-        condVar.signalAll();
-        lock.unlock();
+        try {
+            //Writer is done, update isWriting
+            isWriting = false;
+            
+            //Signal all waiting threads
+            condVar.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
 
 }

@@ -14,13 +14,12 @@ package HW3;
  */
 public class Main {
 
-    /**
-     * @param args 
-     */
-
     public static final int NUM_READERS = 5;
     public static final int NUM_WRITERS = 2;
 
+    /**
+     * @param args
+     */
     public static void main(String[] args) {
 
         //Create new ReadWriteLock

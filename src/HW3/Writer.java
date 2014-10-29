@@ -22,20 +22,13 @@ public class Writer implements Runnable {
 
     public void run() {
         while (true) {
-// nap for awhile
-            try {
-                Thread.sleep(1000);                 //one second
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+            // nap for awhile
+            SleepUtilities.nap();
+            
             db.acquireWriteLock();
-// now write to write to the database
-            try {
-                System.out.println("Writing to the Database");
-                Thread.sleep(1000);                 //one second
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+            
+            // now write to write to the database
+            SleepUtilities.nap();
             db.releaseWriteLock();
         }
     }

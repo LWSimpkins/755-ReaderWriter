@@ -22,20 +22,13 @@ public class Reader implements Runnable {
 
     public void run() {
         while (true) {
-// nap for awhile
-            try {
-                Thread.sleep(1000);                 //one second
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+            // nap for awhile
+            SleepUtilities.nap();
+            
             db.acquireReadLock();
-// now read from the database
-            try {
-                System.out.println("Reading from the Database");
-                Thread.sleep(1000);                 //one second.
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+            
+            // now read from the database
+            SleepUtilities.nap();
             db.releaseReadLock();
         }
     }

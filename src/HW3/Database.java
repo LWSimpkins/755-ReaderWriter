@@ -22,13 +22,15 @@ public class Database implements ReadWriteLock {
     private int readerCount;
     private boolean isWriting;
     private Lock lock;
-    private Condition condVar;
+    private Condition condReaders;
+    private Condition condWriters;
 
     public Database() {
         readerCount = 0;
         isWriting = false;
         lock = new ReentrantLock();
-        condVar = lock.newCondition();
+        condReaders = lock.newCondition();
+        condWriters = lock.newCondition();
     }
 
     public void acquireReadLock() {
@@ -37,11 +39,15 @@ public class Database implements ReadWriteLock {
         try {
             //If writer is writing, wait until signaled
             if (isWriting) {
-                condVar.await();
+                condReaders.await();
             }
             //Thread was signaled and no Writers are writing
             //This thread can read, update readerCount
             ++readerCount;
+            //if this is the first Reader, signal all other Readers, so they can read too
+            if(readerCount==1){
+                condReaders.signalAll();
+            }
         } catch (InterruptedException ie) {
         } finally {
             lock.unlock();
@@ -54,8 +60,13 @@ public class Database implements ReadWriteLock {
             //Reader done, update readerCount
             --readerCount;
             
+            //If there are no Readers reading, signal all Writers
+            if(readerCount==0){
+                condWriters.signalAll();
+            }
+            
             //Signal all waiting threads
-            condVar.signalAll();
+            //condReaders.signalAll();
         } finally {
             lock.unlock();
         }
@@ -68,7 +79,7 @@ public class Database implements ReadWriteLock {
             //If readers are reading, or another Writer is writing
             //Wait until signaled
             if (readerCount > 0 || isWriting) {
-                condVar.await();
+                condWriters.await();
             }
             //Thread was signaled and no Readers reading or Writiers writing
             //This thread can write, update isWriting
@@ -85,8 +96,9 @@ public class Database implements ReadWriteLock {
             //Writer is done, update isWriting
             isWriting = false;
             
-            //Signal all waiting threads
-            condVar.signalAll();
+            //Signal all waiting Reader and Writer threads
+            condReaders.signalAll();
+            condWriters.signalAll();
         } finally {
             lock.unlock();
         }

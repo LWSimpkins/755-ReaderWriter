@@ -24,10 +24,11 @@ public class Reader implements Runnable {
         while (true) {
             // nap for awhile
             SleepUtilities.nap();
-            
+                        
             db.acquireReadLock();
             
             // now read from the database
+            System.out.println("Reading from the Database");
             SleepUtilities.nap();
             db.releaseReadLock();
         }

@@ -5,6 +5,13 @@
  10/28/14
 
  The driver file for the Readers-Writers problem.
+Four arguments are expected from the command line, in the following order:
+NUM_READERS: the number of Reader threads
+LOOP_READERS: the number of times each Reader thread should loop
+NUM_WRITERS: the number of Writer threads
+LOOP_Writers: the number of times each Writer thread should loop
+
+The Reader and Writer threads are created here, and passed the same ReadWriteLock
  */
 package HW3;
 

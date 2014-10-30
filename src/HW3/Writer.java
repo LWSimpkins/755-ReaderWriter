@@ -15,13 +15,16 @@ package HW3;
 public class Writer implements Runnable {
 
     private ReadWriteLock db;
+    private int numLoops;
 
-    public Writer(ReadWriteLock db) {
+    public Writer(ReadWriteLock db, int numLoops) {
         this.db = db;
+        this.numLoops = numLoops;
     }
 
     public void run() {
-        while (true) {
+        int counter =0;
+        while (counter < numLoops) {
             // nap for awhile
             SleepUtilities.nap();
                         
@@ -31,6 +34,9 @@ public class Writer implements Runnable {
             System.out.println("Writing to the Database");
             SleepUtilities.nap();
             db.releaseWriteLock();
+            
+            //Increase the counter
+            counter ++;
         }
     }
 
